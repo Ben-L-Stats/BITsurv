@@ -19,9 +19,13 @@ We recommend opening the examples folder and using these to get started with the
 
 
 ## Documentation
-The documentation for the four main functions `dsinib`, `psinib`, `qsinib`, and `rsinib` can be assessed in R by typing
+The documentation with examples can be assessed in R by typing
 ```
-?dsinib
-?psinib
-?qsinib
-?rsinib
+#The two main functions are:
+?BIT.surv
+?BIT.plot
+
+#Additional functions include:
+?BIT.TS.PAVSI
+?BIT.TS.TFT
+?Fit.curve.plot
