@@ -17,12 +17,12 @@ library(devtools)
 install_github('Ben-L-Stats/BITsurv/tree/main/Package')  #this installs BITsurv
 ```
 
-Following this only 2 lines of code are required to use BITsurv.
-Note that the dplyr package must be loaded in order for BITsurv functions to work. To use BITsurv, run the following:
+To use BITsurv, run the following:
 ```
 library(dplyr)
 library(BITsurv)
 ```
+Note that the dplyr package must be loaded in order for BITsurv functions to work. 
 
 ## Examples
 We recommend opening the examples folder and using these to get started with the package. 
