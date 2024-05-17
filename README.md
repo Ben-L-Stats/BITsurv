@@ -9,10 +9,19 @@ The examples provided in the paper are available in the examples folder.
 The package facilitates interval checking for the 7 standard parametric survival models. (Exponential, Gamma, Generalised gammma, Gompertz, Log-logistic, Log-normal, and Weibull.)
  
 ## Installation and use
-The dplyr package must be loaded in order for BITsurv functions to work. In R console, type 
+When installing BITsurv for the first time run the following 4 lines:
 ```
-install.packages('dplyr')         #this is not required if you have previously installed dplyr
-library('dplyr')
+install.packages('dplyr')         #this installs dplyr
+install.packages('devtools')      #provides the install_github function
+library(devtools)
+install_github('Ben-L-Stats/BITsurv/tree/main/Package')  #this installs BITsurv
+```
+
+Following this only 2 lines of code are required to use BITsurv.
+Note that the dplyr package must be loaded in order for BITsurv functions to work. To use BITsurv, type in the R console
+```
+library(dplyr)
+library(BITsurv)
 
 ```
 
