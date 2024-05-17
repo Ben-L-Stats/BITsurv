@@ -21,7 +21,8 @@ We recommend opening the examples folder and using these to get started with the
 
 ## Documentation
 The documentation with examples can be accessed in R 
-```#The two main functions are:
+```
+#The two main functions are:
 ?BIT.surv
 ?BIT.plot
 
