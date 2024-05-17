@@ -14,7 +14,7 @@ When installing BITsurv for the first time run the following 4 lines:
 install.packages('dplyr')         #this installs dplyr
 install.packages('devtools')      #provides the install_github function
 library(devtools)
-install_github('Ben-L-Stats/BITsurv/tree/main/Package')  #this installs BITsurv
+install_github('Ben-L-Stats/BITsurv/Package')  #this installs BITsurv
 ```
 
 To use BITsurv, now run the following:
