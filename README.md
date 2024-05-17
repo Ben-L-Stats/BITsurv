@@ -1,18 +1,21 @@
 # R Package: BITsurv
-Binomial interval testing for fitted survival models
+Binomial interval testing for fitted survival models.
 
 ## Description
-Density function, distribution function, quantile function and random number generation for the sum of independent non-identical	binomial distribution with parameters `size` and `prob`.
+This package uses the methodology described in the following arxiv paper ...
+
+The package facilitates interval checking for the 7 standard parametric survival models.
  
-## Installation
-In R console, type 
+## Installation and use
+The dplyr package must be loaded in order for BITsurv functions to work. In R console, type 
 ```
-install.packages('sinib')
-library('sinib')
+install.packages('dplyr')         #this is not required if you have previously installed dplyr
+library('dplyr')
+
 ```
 
 ## Examples
-Examples are provided in the examples folder
+We recommend opening the examples folder and using these to get started with the package. 
 
 
 ## Documentation
