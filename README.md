@@ -28,7 +28,7 @@ Note that the dplyr package must be loaded in order for BITsurv functions to wor
 We recommend opening the examples folder and using these to get started with the package. 
 
 ## Documentation
-Documentation for functions can also be accessed directly in R, and this includes additional examples. 
+Documentation for functions can be accessed directly in R.
 ```
 #The two main functions are:
 ?BIT.surv
