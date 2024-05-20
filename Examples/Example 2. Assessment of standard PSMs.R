@@ -1,14 +1,13 @@
 ###################################################################################
-#  Purpose: Perform the binomial interval test for exponential model for the 
-#  BREAK-3 TRT 4 arm
+#  Purpose: Perform the binomial interval tests for the seven standard parametric
+#  survival distributions
 #
-#  Coder: Ben Lee
-#  Date:  14-05-2024
+#  Programmer: 
+#  Date:  
 ###################################################################################
 
 #libraries----------------------------------------------------------------------
-library(survHE) #Load survHE. Loads flexsurv and survival automatically
-library(survminer) #Required for ggsurvplot
+library(BITsurv)
 library(dplyr)
 
 #set file paths, load data and format data--------------------------------------
@@ -53,13 +52,6 @@ spec_int<-censors$time
 Dist.loop=c("exp", "weibull", "gompertz", "llogis", "lnorm", "gamma", "gengamma")
 
 
-#Source and run BIT function--------------------------------------------------
-
-#source the functions 
-source(file.path(base.file, "Functions", "1. BITsurv.R"))
-source(file.path(base.file, "Functions", "3. Test statistics.R"))
-
-
 #Run analyses using original censor intervals approach--------------------------
 
 #set up empty dataframe to save results
@@ -70,7 +62,7 @@ TS.results<-data.frame(fitted.dist=rep(NA,length(Dist.loop)),
 for (i in 1:length(Dist.loop)){ #loop through distributions
 
 #run the BIT
-BIT.table<-BITsurv(surv.data, Distribution=Dist.loop[i], spec_int)
+BIT.table<-BIT.surv(surv.data, Distribution=Dist.loop[i], spec_int)
 
 #Save the TS results
 TS.results$fitted.dist[i]<- Dist.loop[i]
@@ -107,7 +99,8 @@ Results.Ints<-BIT.tab.final %>%
 for (i in 1:length(Dist.loop)){ #loop through distributions
   
   #fit the model to the data
-  par.est<-flexsurvreg(Surv(time, event) ~ 1, data = surv.data, dist=Dist.loop[i]) 
+  par.est<-flexsurv::flexsurvreg(survival::Surv(time, event) ~ 1, 
+                       data = surv.data, dist=Dist.loop[i]) 
   
   #save the AIC values
   if (i==1){ #save first result
@@ -132,14 +125,15 @@ nrow(surv.data)
 
 
 
-#Additional plot checks if required---------------------------------------------
-source(file.path(base.file, "Functions", "2. BITplot.R"))
+
+
+#Additional individual plot checks as required---------------------------------------------
 
 #lnorm perform well on AIC and BIC but has a Bonferroni rejection for censor intervals
 
 spec.dist<-'gengamma'
 
-BIT.spec.table<-BITsurv(surv.data, 
+BIT.spec.table<-BIT.surv(surv.data, 
                    Distribution=spec.dist, 
                    spec_int=0.1*max(censors$time)*0:10)
 

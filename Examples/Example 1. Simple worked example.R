@@ -2,13 +2,12 @@
 #  Purpose: Perform the binomial interval test for exponential model for the 
 #  BREAK-3 TRT 4 arm
 #
-#  Coder: Ben Lee
-#  Date:  14-05-2024
+#  Programmer: 
+#  Date:  
 ###################################################################################
 
 #libraries----------------------------------------------------------------------
-library(survHE) #Load survHE. Loads flexsurv and survival automatically
-library(survminer) #Required for ggsurvplot
+library(BITsurv)
 library(dplyr)
 
 #set file paths, load data and format data--------------------------------------
@@ -20,7 +19,6 @@ melanoma.data<-read.csv(file.path(base.file,'Data','melanoma_ipd.csv'))
 
 melanoma.data <-melanoma.data %>% 
   mutate(arm=paste0(study, ' - TRT ',txCode ))
-
 
 #select just 1 arm
 surv.data<-melanoma.data %>% 
@@ -47,11 +45,16 @@ Distribution="exp"
 
 #Source and run BIT function--------------------------------------------------
 
-source(file.path(base.file, "Functions", "1. BITsurv.R"))
-BIT.table<-BITsurv(surv.data, Distribution, spec_int)
+BIT.table<-BIT.surv(surv.data, Distribution, spec_int)
 
 
 #Source and run plot function---------------------------------------------------
 
-source(file.path(base.file, "Functions", "2. BITplot.R"))
-BIT.plot(surv.data, Distribution, BIT.table, X)
+BIT.plot(surv.data, Distribution, BIT.table)
+
+
+#The test statistics------------------------------------------------------------
+
+BIT.TS.PAVSI(BIT.table$V.mid.pval)       #protection against very small intervals (PAVSI)
+
+BIT.TS.TFT(BIT.table$V.mid.pval )       #transformed fisher test (TFT)

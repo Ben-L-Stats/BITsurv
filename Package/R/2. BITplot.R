@@ -2,7 +2,6 @@
 
 #Input is:
 # surv.data
-# Distribution
 # x values for the plot
 
 # surv.data with numeric time and event values
@@ -24,6 +23,8 @@
 #' 'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'. See
 #' flexsurv for further details on these distributions.
 #' @param BIT.table A dataframe which is the output of the BITsurv function.
+#' This dataframe also states the parametric survival distribution of interest, where available options are:
+#' 'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'.
 #' @param break.time Gives the labelled breaks in time on the survival plot and number and risk plot.
 #'
 #' @return A binomial interval test (BIT) plot
@@ -42,13 +43,15 @@
 #'
 #' #Produce the plot
 #' BIT.plot(surv.data=simple.data,
-#'          Distribution='exp',
 #'          BIT.table=BIT.table,
 #'          break.time=5)
 #'
-BIT.plot<-function(surv.data, Distribution,BIT.table, break.time=10){
+BIT.plot<-function(surv.data, BIT.table, break.time=10){
   #Begin function----------------------------------------------------------------
   #------------------------------------------------------------------------------
+
+  #Specify the distribution of interest
+  Distribution<-unique(BIT.table$fitted.dist)
 
   #Fit the model to the data
   par.est<-flexsurv::flexsurvreg(survival::Surv(time, event) ~ 1,

@@ -156,13 +156,13 @@ if (Distribution=='weibull'){
 
 if (Distribution=='gompertz'){
   new.data.2<-new.data.1%>%
-    mutate(p={pgompertz(q=I.upper,
+    mutate(p={flexsurv::pgompertz(q=I.upper,
                        shape=par.est$coefficients['shape'],
                        rate=exp(par.est$coefficients['rate']))-       #calculate of p
-              pgompertz(q=I.lower,
+        flexsurv::pgompertz(q=I.lower,
                        shape=par.est$coefficients['shape'],
                        rate=exp(par.est$coefficients['rate'])) }/
-          (1-pgompertz(q=I.lower,
+          (1-flexsurv::pgompertz(q=I.lower,
                        shape=par.est$coefficients['shape'],
                        rate=exp(par.est$coefficients['rate'])))   )
                              }
@@ -170,13 +170,13 @@ if (Distribution=='gompertz'){
 
 if (Distribution=='llogis'){
   new.data.2<-new.data.1%>%
-    mutate(p={pllogis(q=I.upper,
+    mutate(p={flexsurv::pllogis(q=I.upper,
                        shape=exp(par.est$coefficients['shape']),
                        scale=exp(par.est$coefficients['scale']))-       #calculate of p
-        pllogis(q=I.lower,
+        flexsurv::pllogis(q=I.lower,
                  shape=exp(par.est$coefficients['shape']),
                  scale=exp(par.est$coefficients['scale'])) }/
-          (1-pllogis(q=I.lower,
+          (1-flexsurv::pllogis(q=I.lower,
                       shape=exp(par.est$coefficients['shape']),
                       scale=exp(par.est$coefficients['scale'])))   )
                            }
@@ -211,15 +211,15 @@ if (Distribution=='gamma'){
 
 if (Distribution=='gengamma'){
   new.data.2<-new.data.1%>%
-    mutate(p={pgengamma(q=I.upper,
+    mutate(p={flexsurv::pgengamma(q=I.upper,
                      mu=par.est$coefficients['mu'],
                      sigma=exp(par.est$coefficients['sigma']),
                      Q=par.est$coefficients['Q'])-       #calculate of p
-        pgengamma(q=I.lower,
+        flexsurv::pgengamma(q=I.lower,
                mu=par.est$coefficients['mu'],
                sigma=exp(par.est$coefficients['sigma']),
                Q=par.est$coefficients['Q']) }/
-          (1-pgengamma(q=I.lower,
+          (1-flexsurv::pgengamma(q=I.lower,
                     mu=par.est$coefficients['mu'],
                     sigma=exp(par.est$coefficients['sigma']),
                     Q=par.est$coefficients['Q']))   )
