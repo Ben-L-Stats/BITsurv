@@ -16,3 +16,6 @@ Imports:
     flexsurv,
     survminer,
     survival
+Depends: 
+    R (>= 2.10)
+LazyData: true
