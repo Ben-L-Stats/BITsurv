@@ -19,9 +19,6 @@
 #' This function produces a plot
 #'
 #' @param surv.data A dataframe with 2 columns labelled time and event.
-#' @param Distribution Pick your parametric survival distribution. Available options are:
-#' 'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'. See
-#' flexsurv for further details on these distributions.
 #' @param BIT.table A dataframe which is the output of the BITsurv function.
 #' This dataframe also states the parametric survival distribution of interest, where available options are:
 #' 'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'.
@@ -75,10 +72,10 @@ BIT.plot<-function(surv.data, BIT.table, break.time=10){
   if (Distribution=='weibull'){y<-1-pweibull(q=x,
                                              shape=exp(par.est$coefficients['shape']),
                                              scale=exp(par.est$coefficients['scale']))}
-  if (Distribution=='gompertz'){y<-1-pgompertz(q=x,
+  if (Distribution=='gompertz'){y<-1-flexsurv::pgompertz(q=x,
                                                shape=par.est$coefficients['shape'],
                                                rate=exp(par.est$coefficients['rate']))}
-  if (Distribution=='llogis'){y<-1-pllogis(q=x,
+  if (Distribution=='llogis'){y<-1-flexsurv::pllogis(q=x,
                                            shape=exp(par.est$coefficients['shape']),
                                            scale=exp(par.est$coefficients['scale']))}
   if (Distribution=='lnorm'){y<-1-plnorm(q=x,
@@ -87,7 +84,7 @@ BIT.plot<-function(surv.data, BIT.table, break.time=10){
   if (Distribution=='gamma'){y<-1-pgamma(q=x,
                                          shape=exp(par.est$coefficients['shape']),
                                          rate=exp(par.est$coefficients['rate']))}
-  if (Distribution=='gengamma'){y<-1-pgengamma(q=x,
+  if (Distribution=='gengamma'){y<-1-flexsurv::pgengamma(q=x,
                                                mu=par.est$coefficients['mu'],
                                                sigma=exp(par.est$coefficients['sigma']),
                                                Q=par.est$coefficients['Q'])}

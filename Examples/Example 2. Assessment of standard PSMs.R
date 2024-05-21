@@ -12,22 +12,14 @@ library(dplyr)
 
 #set file paths, load data and format data--------------------------------------
 
-base.file<-"C:/R/Simulated KM curves/Final repo"
+#melanoma data from https://github.com/SCFreeman/Melanoma_NMA 
+#this is saved within the package
+melanoma.data
 
-#melanoma data from https://github.com/SCFreeman/Melanoma_NMA
-melanoma.data<-read.csv(file.path(base.file,'Data','melanoma_ipd.csv'))
-
-melanoma.data <-melanoma.data %>% 
-  mutate(arm=paste0(study, ' - TRT ',txCode ))
-
-unique(melanoma.data$arm)
-#COMBI-d - TRT 5
-#"Robert 2011 - TRT 1"
-
-#select just 1 arm
+#select just 1 arm from this data
 surv.data<-melanoma.data %>% 
   filter(arm=="COMBI-d - TRT 5") %>%         #select arm and treatment
-  mutate(USUBJID=as.character(patid)) %>%   #data formatting
+  mutate(USUBJID=as.character(patid)) %>%    #data formatting
   select(USUBJID,time, event)
 
 
@@ -59,6 +51,9 @@ TS.results<-data.frame(fitted.dist=rep(NA,length(Dist.loop)),
                        PAVSI=rep(NA,length(Dist.loop)),
                        TFT=rep(NA,length(Dist.loop)))
 
+
+#Produce the BIT tables for each distribution-----------------------------------
+
 for (i in 1:length(Dist.loop)){ #loop through distributions
 
 #run the BIT
@@ -80,7 +75,7 @@ BIT.tab.final<-rbind(BIT.tab.final,
 } #end of loop through distributions
 
 
-#Summarize the results
+#Summarize the results----------------------------------------------------------
 Results.Ints<-BIT.tab.final %>% 
   group_by(fitted.dist) %>% 
   summarize(Intervals=length(fitted.dist),
@@ -91,10 +86,7 @@ Results.Ints<-BIT.tab.final %>%
 
 
 
-
-
-
-#Collect the AIC and BIC values--------------------------------------------
+#Collect the AIC and BIC values for each distribution---------------------------
 
 for (i in 1:length(Dist.loop)){ #loop through distributions
   
@@ -113,13 +105,12 @@ for (i in 1:length(Dist.loop)){ #loop through distributions
 }#end of loop through distributions
 
 
-
 #Bind the tables together-------------------------------------------------------
 
 Final.table<-Results.Ints %>% 
                left_join(AIC.table, by='fitted.dist')
 
-nrow(surv.data)
+
 
 
 
@@ -141,13 +132,17 @@ BIT.spec.table<-BIT.surv(surv.data,
 #                         Distribution=spec.dist, 
 #                         spec_int=censors$time)
 
-BIT.plot(surv.data, Distribution=spec.dist, BIT.table=BIT.spec.table, break.time=5)
+BIT.plot(surv.data, 
+         BIT.table=BIT.spec.table, 
+         break.time=5)
 
 #-------------------------------------------------------------------------------
 spec.dist<-'lnorm'
 
-BIT.spec.table<-BITsurv(surv.data, 
+BIT.spec.table<-BIT.surv(surv.data, 
                         Distribution=spec.dist, 
                         spec_int=0.1*max(censors$time)*0:10)
 
-
+BIT.plot(surv.data, 
+         BIT.table=BIT.spec.table, 
+         break.time=5)

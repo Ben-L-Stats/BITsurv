@@ -4,16 +4,14 @@
 \alias{BIT.plot}
 \title{Takes a BITsurv dataframe and returns a BIT plot}
 \usage{
-BIT.plot(surv.data, Distribution, BIT.table, break.time = 10)
+BIT.plot(surv.data, BIT.table, break.time = 10)
 }
 \arguments{
 \item{surv.data}{A dataframe with 2 columns labelled time and event.}
 
-\item{Distribution}{Pick your parametric survival distribution. Available options are:
-'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'. See
-flexsurv for further details on these distributions.}
-
-\item{BIT.table}{A dataframe which is the output of the BITsurv function.}
+\item{BIT.table}{A dataframe which is the output of the BITsurv function.
+This dataframe also states the parametric survival distribution of interest, where available options are:
+'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'.}
 
 \item{break.time}{Gives the labelled breaks in time on the survival plot and number and risk plot.}
 }
@@ -36,7 +34,6 @@ simple.data<-data.frame(T=rexp(100, rate=1/10),        #the underlying event pro
 
 #Produce the plot
 BIT.plot(surv.data=simple.data,
-         Distribution='exp',
          BIT.table=BIT.table,
          break.time=5)
 

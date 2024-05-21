@@ -2,17 +2,18 @@
 #  Purpose: Generate data under the null hypothesis.
 #           Then plot this to visualize a single simulation
 #
-#  Coder: Ben Lee
-#  Date:  14-05-2024
+#  Programmer: 
+#  Date:  
 ###################################################################################
 
 
 #libraries----------------------------------------------------------------------
-library(survHE) #Load survHE. Loads flexsurv and survival automatically
-library(survminer) #Required for ggsurvplot
+
+#library(BITsurv)  #BITsurv package is not used here
 library(dplyr)
 
-base.file<-"C:/R/Simulated KM curves/Final repo"
+library(flexsurv)
+library(survminer)
 
 #Produce simulated data---------------------------------------------------------
 
@@ -39,7 +40,6 @@ simulation<- data.frame(T=rexp(N.patients,rate=1/10),
 #Format as survival data
 surv.data<-simulation %>% 
   select(time, event) 
-
 
 
 #Produce plot-------------------------------------------------------------------

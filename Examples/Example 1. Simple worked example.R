@@ -12,22 +12,17 @@ library(dplyr)
 
 #set file paths, load data and format data--------------------------------------
 
-base.file<-"C:/R/Simulated KM curves/Final repo"
+#melanoma data from https://github.com/SCFreeman/Melanoma_NMA 
+#this is saved within the package
+melanoma.data
 
-#melanoma data from https://github.com/SCFreeman/Melanoma_NMA
-melanoma.data<-read.csv(file.path(base.file,'Data','melanoma_ipd.csv'))
-
-melanoma.data <-melanoma.data %>% 
-  mutate(arm=paste0(study, ' - TRT ',txCode ))
-
-#select just 1 arm
+#select just 1 arm from this data
 surv.data<-melanoma.data %>% 
   filter(arm=="BREAK-3 - TRT 4") %>%         #select arm and treatment
   mutate(USUBJID=as.character(patid)) %>%   #data formatting
   select(USUBJID,time, event)
 
-
-#Perform the binomial intevral test (BIT)--------------------------------------------
+#Perform the binomial interval test (BIT)--------------------------------------------
 
 #Specify intervals of interest--------------------------------------------------
 
@@ -35,13 +30,11 @@ surv.data<-melanoma.data %>%
 censors<-surv.data %>% filter(event==0)
 spec_int<-censors$time
 
-
 #Pick a survival model that you would like to check------------------------------
 
 #Options are: exp, weibull, gompertz, llogis, lnorm, gamma, gengamma   
 #We are only interested in exp for this example
 Distribution="exp"
-
 
 #Source and run BIT function--------------------------------------------------
 
@@ -50,8 +43,7 @@ BIT.table<-BIT.surv(surv.data, Distribution, spec_int)
 
 #Source and run plot function---------------------------------------------------
 
-BIT.plot(surv.data, Distribution, BIT.table)
-
+BIT.plot(surv.data, BIT.table)
 
 #The test statistics------------------------------------------------------------
 

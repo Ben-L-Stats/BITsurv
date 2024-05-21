@@ -2,24 +2,28 @@
 #  Purpose: Generate data under the null hypothesis.
 #           Then apply the methods on this to verify type 1 error rates etc
 #
-#  Coder: Ben Lee
-#  Date:  14-05-2024
+#  Programmer: 
+#  Date:  
 ###################################################################################
 
-
 #libraries----------------------------------------------------------------------
-library(survHE) #Load survHE. Loads flexsurv and survival automatically
-library(survminer) #Required for ggsurvplot
+
+library(BITsurv)  
+#A lot of the machinery from BITsurv is explicitly written out as code here
+#This is because we are constraining ourselve to test the null
+
 library(dplyr)
 
+library(flexsurv)
+library(survminer)
 library(sinib)
 
-base.file<-"C:/R/Simulated KM curves/Final repo"
 
-#source TS functions
-source(file.path(base.file, "Functions", "3. Test statistics.R"))
 
-#Some functions-----------------------------------------------------------------
+
+
+
+#Some required functions--------------------------------------------------------
 
 #specified interval assignment functions----------------------------------------
 lower.int<-function(time){ifelse(time<=min(spec_int),
@@ -45,6 +49,15 @@ upper.sub.int<-function(time){ifelse(time>max(sub.ints),
 upper.sub.int.vec<-function(time){sapply(time, upper.sub.int)}
 
 
+
+
+
+
+
+
+
+
+
 #The model for the simulated data-----------------------------------------------
 
 #Event generating process is
@@ -60,16 +73,29 @@ upper.sub.int.vec<-function(time){sapply(time, upper.sub.int)}
 #times=min(C,T)
 #events=1 if T<=C, or 1 otherwise
 
-N.patients<-1000
+
+
+
+
+
+#Simulation specifications------------------------------------------------------
+
+N.patients<-200
 
 #number of simulations
-N.sims<-1000
+N.sims<-10000
 
 #Interval selection approach
 Approach<-'Ten.Fixed.Ints'
 #or
 #Approach<-'Censor.Ints'
 
+
+
+
+################################################################################
+# Run the simulation------------------------------------------------------------
+################################################################################
 for (i in 1:N.sims){
 #i<-1
   
@@ -82,9 +108,7 @@ for (i in 1:N.sims){
   select(time, event) 
 
   
-  
-  
-#Decide of specified interval approach  
+#Decides which specified interval approach to use
 
 censors<-surv.data %>% filter(event==0)
 
@@ -159,11 +183,12 @@ spec_int<-0.1*max(censors$time)*0:10
 # End of edit*******************************************************************  
   
   
+  
   #Final summaries----------------------------------------------------------------
   
   #Now we look at summarizing the specified intervals
   
-  new.data.3<-new.data.2 %>% 
+  new.data.3<-new.data.2 %>%
     mutate(expected_E=p*N.risk)%>%    #first add the expect number of events under the fitted model
     group_by(V.lower) %>%
     summarise(V.upper=unique(V.upper),
@@ -172,36 +197,83 @@ spec_int<-0.1*max(censors$time)*0:10
               V.mid.pval=if(length(V.lower)==1){   #there are cases where sinib breaks in the binomial case
                 #to prevents these breaks (p.values outside (0,1)) we use the classical pbinom function
                 
-                0.5*pbinom(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V     
-                           size=as.integer(N.risk), 
+                0.5*pbinom(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V
+                           size=as.integer(N.risk),
                            prob=p)+
-                  0.5*pbinom(q=as.integer(sum(Events.obs.I)-1),    
-                             size=as.integer(N.risk), 
-                             prob=p)  
+                  0.5*pbinom(q=as.integer(sum(Events.obs.I)-1),
+                             size=as.integer(N.risk),
+                             prob=p)
                 
               }else{ #for non-binomial situations sinib is used
                 
-                0.5*psinib(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V     
-                           size=as.integer(N.risk), 
-                           prob=p) +
+                0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V
+                                  size=as.integer(N.risk),
+                                  prob=p) +
                   ifelse(sum(Events.obs.I)==0,       #additional step as psinib can break if q<0
                          0,
-                         0.5*psinib(q=as.integer(sum(Events.obs.I)-1),         
-                                    size=as.integer(N.risk), 
-                                    prob=p))
+                         0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)-1),
+                                           size=as.integer(N.risk),
+                                           prob=p))
               },
               N.risk.at.V.start=max(N.risk),
-              E=sum(Events.obs.I)) 
+              E=sum(Events.obs.I))
   
   #In the case that the largest time is an event and the specified V are such that
   #the last event is outside of V then you obtain an interval with an upper bound of
   #resulting in a Prob=1 of observing an event within said interval, making the observed
   #event redundant. As such, such an interval is not of interest and is removed.
-
-  #Similarly, if for whatever reason V is specified such that certain events are 
-  #outside of this. Then they will be assigned to this infinite interval and similarly 
+  
+  #Similarly, if for whatever reason V is specified such that certain events are
+  #outside of this. Then they will be assigned to this infinite interval and similarly
   #should be dropped. This is done here
   new.data.3<-new.data.3 %>% filter(V.upper!=Inf)
+  
+  
+  
+  #Error catching-------------------------------------------------------------------
+  
+  #There are a few rare situations (~1%) where sinib does not converge
+  #and gives p-values outside of [0,1].
+  #We will now implement a step to protect against this
+  
+  #First check new.data.3 for any p values outside of [0,1]
+  
+  p.checks<-new.data.3$V.mid.pval
+  if(sum(!between(p.checks, left=0, right=1))>=1){ #if one or more p-values fall
+    #outside of 0 and 1 then
+    #find the v.lower values corresponding to these errors
+    error.intervals<-new.data.3$V.lower[!between(p.checks, left=0, right=1)]
+    
+    #now we want to obtain the corrected values
+    #we do this be approximating the probabilities by using the round function
+    #this should hopefully provide values that have converged
+    ammended.p<-new.data.2 %>%
+      filter(V.lower %in% error.intervals) %>%   #select only data related to the error intervals
+      mutate(expected_E=p*N.risk)%>%
+      group_by(V.lower) %>%
+      summarise(V.upper=unique(V.upper),
+                Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
+                Observed.E_over.V=sum(Events.obs.I),
+                V.mid.pval= 0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V
+                                              size=as.integer(N.risk),
+                                              prob=round(p, digits = 3)) +##################
+                ifelse(sum(Events.obs.I)==0,       #additional step as psinib can break if q<0
+                       0,
+                       0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)-1),
+                                         size=as.integer(N.risk),
+                                         prob=round(p, digits = 3))),############
+                N.risk.at.V.start=max(N.risk),
+                E=sum(Events.obs.I) )
+    
+    
+    #Now to replace the error p.val with this updated one
+    
+    #values outside of range are given by new.data.3$V.mid.pval[which(!between(p.checks, left=0, right=1))]
+    #and are updated to ammendment
+    new.data.3$V.mid.pval[which(!between(p.checks, left=0, right=1))]<-ammended.p$V.mid.pval
+  }
+  #End of error catching
+  
   
   #Bonferroni and individual test results-----------------------------------------
   #for the specified intervals
@@ -260,42 +332,85 @@ if(i==1){
 
 
 
+################################################################################
 #Analysis of final simulation results--------------------------------------------
-
+################################################################################
 #final.results
 
+
+#Bonferroni results-------------------------------------------------------------
 
 #We are interested in:
 #Bonferroni rejects (that under H0 Prob bonferroni>=1 is approxiately 0.05 or less)  
 sum(final.results$Bonferroni.rejects>0)/N.sims
-#For Ten.Fixed.Ints' approach with 10,000 sims we get
+#For Ten.Fixed.Ints' approach with 10,000 sims and 200 patients we get
 #0.0435
-#For censor intervals with 1000 sims we get
-#0.017
+
+#For censor intervals with 10,000 sims and 200 patients we get
+#0.0213
+
+
+
+#PAVSI results------------------------------------------------------------------
 
 #TS.PAVSI (should approximately reject 0.05 times) 
 sum(final.results$PAVSI.TS<=0.05)/N.sims
-#For Ten.Fixed.Ints' approach with 10,000 sims we get
-#0.059
-#For censor intervals
-#0.004
+#For Ten.Fixed.Ints' approach with 10,000 sims and 200 patients we get
+#0.0700
+#0.0732
+
+#For censor intervals with 10,000 sims and 200 patients we get
+#0.0041
 
 
+
+
+
+#TFT results-------------------------------------------------------------
 
 #TS.TFT (should approximately reject 0.05 times)
 sum(final.results$TFT.TS<=0.05,rm.na=TRUE)/N.sims
+#This often reports NA.
+#This is due to a small number of errors in sinib
+#Note that numerous steps have been implemented to reduce the prevailence of
+#these errors down to around 0.1% 
 
-#No issues with censor intervals variant
-#Rejection at 0.004
 
+#Let's analyse the TFT results with this in mind
 
+#How many sinib failures?
 #Still some NaN values
 sum(final.results$TFT.TS=='NaN')/N.sims
-#around 0.0106
-sum(final.results$TFT.TS[final.results$TFT.TS!='NaN']<=0.05)/N.sims
-#removing NaN values we get around 0.0291
+#For Ten.Fixed.Ints' approach with 10,000 sims and 200 patients
+#around 0.0024
+#For censor intervals with 10,000 sims and 200 patients we get
+#around 0.0002
 
+#What is the type 1 error rate when removing sinib failures?
+sum(final.results$TFT.TS[final.results$TFT.TS!='NaN']<=0.05)/N.sims
+#removing NaN values we get....
+#For Ten.Fixed.Ints' approach with 10,000 sims and 200 patients we get
+#0.0397
+
+#For censor intervals with 10,000 sims and 200 patients we get
+#0.0001
+
+
+
+
+#How are the these TS distributed?
 #should also be approximately uniform [0,1]
 hist(final.results$TFT.TS, breaks=20, probability = TRUE)
-     
-     
+#For Ten.Fixed.Ints' approach with 10,000 sims and 200 patients...
+#this is approximately uniform with a very slight upwards skew
+#density at x-axis=0 is around 0.8, then from x-axis=0.4 to 1 has a density around 1.1
+
+#For censor intervals with 10,000 sims and 200 patients...
+#this is highly skewed upwards with over 95% of the density coming in above
+#0.9. That is,  this is not uniform[0,1] and gives a very low type 1 error rate under the null
+
+#As a final note, if you encounter a rare sinib error in your base analysis (not a
+#simulation experiment) where my error catching has not resolved this, you can 
+#get around this by approximating the probabilities further to give an approximate 
+#value for the offending interval (as I have done in the error catching step)
+#say run the error catching step with prob=round(p, digits = 2) (instead of 3)
