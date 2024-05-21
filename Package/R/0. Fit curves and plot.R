@@ -65,10 +65,10 @@ if (Distribution=='exp')    {y<-1-pexp(q=x,
 if (Distribution=='weibull'){y<-1-pweibull(q=x,
                                          shape=exp(par.est$coefficients['shape']),
                                          scale=exp(par.est$coefficients['scale']))}
-if (Distribution=='gompertz'){y<-1-pgompertz(q=x,
+if (Distribution=='gompertz'){y<-1-flexsurv::pgompertz(q=x,
                                          shape=par.est$coefficients['shape'],
                                          rate=exp(par.est$coefficients['rate']))}
-if (Distribution=='llogis'){y<-1-pllogis(q=x,
+if (Distribution=='llogis'){y<-1-flexsurv::pllogis(q=x,
                                          shape=exp(par.est$coefficients['shape']),
                                          scale=exp(par.est$coefficients['scale']))}
 if (Distribution=='lnorm'){y<-1-plnorm(q=x,
@@ -77,7 +77,7 @@ if (Distribution=='lnorm'){y<-1-plnorm(q=x,
 if (Distribution=='gamma'){y<-1-pgamma(q=x,
                                        shape=exp(par.est$coefficients['shape']),
                                        rate=exp(par.est$coefficients['rate']))}
-if (Distribution=='gengamma'){y<-1-pgengamma(q=x,
+if (Distribution=='gengamma'){y<-1-flexsurv::pgengamma(q=x,
                                       mu=par.est$coefficients['mu'],
                                       sigma=exp(par.est$coefficients['sigma']),
                                       Q=par.est$coefficients['Q'])}
