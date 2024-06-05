@@ -2,7 +2,7 @@
 Binomial interval testing for fitted survival models.
 
 ## Description
-This package uses the methodology described in the following arxiv paper ...
+This package uses the methodology described in the following arxiv paper [...](https://arxiv.org/abs/2406.00730)
 
 The examples provided in the paper are available in the examples folder.
  
