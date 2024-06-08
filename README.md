@@ -4,7 +4,7 @@ Binomial interval testing for fitted survival models.
 ## Description
 This package uses the methodology described in the following [arxiv paper.](https://arxiv.org/abs/2406.00730)
 
-The examples provided in the paper are available in the 'Examples' folder.
+The examples from the paper are available in the 'Examples' folder.
  
 The package facilitates interval checking for the 7 standard parametric survival models. (Exponential, Gamma, Generalised gammma, Gompertz, Log-logistic, Log-normal, and Weibull.)
  
