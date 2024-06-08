@@ -17,7 +17,7 @@ library(devtools)
 install_github('Ben-L-Stats/BITsurv/Package')  #this installs BITsurv
 ```
 
-To use BITsurv, now run the following:
+To use BITsurv for now on, just run the following:
 ```
 library(dplyr)
 library(BITsurv)
