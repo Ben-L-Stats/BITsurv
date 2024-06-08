@@ -23,7 +23,7 @@ simple.data<-data.frame(T=rexp(100, rate=1/10),        #the underlying event pro
 # censors<-simple.data %>% filter(event==0)
 # spec_int<-censors$time
 
-#Recommended specifications are
+#Recommended specifications are the 10 evenly-spaced interval approach
 censors<-simple.data %>% filter(event==0)
 spec_int<-0.1*max(censors$time)*0:10
 
@@ -40,7 +40,7 @@ Distribution="exp"
 
 #?Fit.curve.plot
 Fit.curve.plot(surv.data=simple.data,
-               Distribution='exp',
+               Distribution=Distribution,
                break.time=5)
 
 #Produce BIT table--------------------------------------------------------------

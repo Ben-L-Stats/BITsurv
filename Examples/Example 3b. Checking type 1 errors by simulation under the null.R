@@ -80,7 +80,11 @@ upper.sub.int.vec<-function(time){sapply(time, upper.sub.int)}
 
 #Simulation specifications------------------------------------------------------
 
-N.patients<-200
+#number of patients
+N.patients<-200    
+
+#expected survival in underlying model = 1/rate.spec
+rate.spec<-1/10
 
 #number of simulations
 N.sims<-10000
@@ -93,13 +97,14 @@ Approach<-'Ten.Fixed.Ints'
 
 
 
+
 ################################################################################
 # Run the simulation------------------------------------------------------------
 ################################################################################
 for (i in 1:N.sims){
 #i<-1
   
-  surv.data<- data.frame(Time.of.Event=rexp(N.patients,rate=1/10),
+  surv.data<- data.frame(Time.of.Event=rexp(N.patients,rate=rate.spec),
                        C1=runif(N.patients, min=0, max=100),
                        C2=runif(N.patients, min=18, max=22)) %>% 
   mutate(C=pmin(C1,C2)) %>% 
@@ -177,9 +182,9 @@ spec_int<-0.1*max(censors$time)*0:10
 #This has been edited to use the null to calculate p
   
     new.data.2<-new.data.1%>% 
-      mutate(p={pexp(q=I.upper, rate=0.1)-       #calculate of p for fitted exponential model
-          pexp(q=I.lower, rate=0.1) }/
-            (1-pexp(q=I.lower,rate=0.1))) 
+      mutate(p={pexp(q=I.upper, rate=rate.spec)-       #calculate of p for fitted exponential model
+          pexp(q=I.lower, rate=rate.spec) }/
+            (1-pexp(q=I.lower,rate=rate.spec))) 
 # End of edit*******************************************************************  
   
   

@@ -23,17 +23,26 @@ surv.data<-melanoma.data %>%
   select(USUBJID,time, event)
 
 
+#Quick initial plot to view the data--------------------------------------------
+Fit.curve.plot(surv.data=surv.data,
+               Distribution='exp',
+               break.time=5)
+
 #Perform the binomial intevral test (BIT)--------------------------------------------
 
 #Specify intervals of interest--------------------------------------------------
 
-#We are using the original approach where the censors define the intervals
-censors<-surv.data %>% filter(event==0)
-spec_int<-censors$time
+#Decide which approach to use:
+#here we go with the 10 evenly-spaced interval approach
+#replace lines 44 and 45 with uncommented lines 40 and 41 to use the censor interval approach 
 
-#Run analyses using 10 fixed intervals approach
+#The censor interval approach
 # censors<-surv.data %>% filter(event==0)
-# spec_int<-0.1*max(censors$time)*0:10
+# spec_int<-censors$time
+
+#The 10 evenly-spaced intervals approach
+censors<-surv.data %>% filter(event==0)
+spec_int<-0.1*max(censors$time)*0:10
 
 
 #Pick a survival model that you would like to check------------------------------
