@@ -27,6 +27,9 @@
 #' flexsurv for further details on these distributions.
 #' @param spec_int The specified intervals: Provide a vector of values that represent your chosen intervals,
 #' where the sequential values in this vector form an interval.
+#' @param p_method The method of obtaining p-values: Default is 'mid', which is recommended for
+#' practical applications. Options are either 'mid' for midpoint p-values,
+#' or 'rand' for randomised p-values. 
 #'
 #' @return A binomial interval test (BIT) summary in the form of a dataframe
 #' @export
@@ -48,10 +51,22 @@
 #'         Distribution='exp',
 #'         spec_int=spec_int)
 #'
-BIT.surv<-function(surv.data, Distribution, spec_int){
+BIT.surv<-function(surv.data, 
+                   Distribution, 
+                   spec_int,
+                   p_method='mid'){
 #start of function------------------------------------------------------------
 #-----------------------------------------------------------------------------
 
+  # Catch errors in specifications
+  if (!(Distribution %in%  c('exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', 'gengamma'))) {
+    stop("The distribution you have specified is not an available option.")}
+  
+  if (!(p_method %in%  c('mid', 'rand'))) {
+    stop("The p_method you have specified is not an available option.")}
+  
+  
+  
 #Fit the  model to the data-----------------------------------------------------
 
 par.est<-flexsurv::flexsurvreg(survival::Surv(time, event) ~ 1,
@@ -232,39 +247,65 @@ if (Distribution=='gengamma'){
 
 
 
-#Final summaries----------------------------------------------------------------
+#Summarising by calculating p-values----------------------------------------------------------------
 
 #Now we look at summarizing the specified intervals
 
-new.data.3<-new.data.2 %>%
-  mutate(expected_E=p*N.risk)%>%    #first add the expect number of events under the fitted model
-  group_by(V.lower) %>%
-  summarise(V.upper=unique(V.upper),
-            Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
-            Observed.E_over.V=sum(Events.obs.I),
-            V.mid.pval=if(length(V.lower)==1){   #there are cases where sinib breaks in the binomial case
-              #to prevents these breaks (p.values outside (0,1)) we use the classical pbinom function
 
-              0.5*pbinom(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V
-                         size=as.integer(N.risk),
-                         prob=p)+
-                0.5*pbinom(q=as.integer(sum(Events.obs.I)-1),
-                           size=as.integer(N.risk),
-                           prob=p)
+if(p_method=='mid'){
+  
+  new.data.3<-new.data.2 %>%
+    mutate(expected_E=p*N.risk)%>%    #first add the expect number of events under the fitted model
+    group_by(V.lower) %>%
+    summarise(V.upper=unique(V.upper),
+              Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
+              Observed.E_over.V=sum(Events.obs.I),
+              
+              V.pval= {0.5*PoissonBinomial::ppbinom(
+                x=as.integer(sum(Events.obs.I)),
+                probs=(rep(p,N.risk)))+
+                  0.5*PoissonBinomial::ppbinom(
+                    x=as.integer(sum(Events.obs.I)-1),
+                    probs=(rep(p,N.risk)))},
+              
+              N.risk.at.V.start=max(N.risk),
+              E=sum(Events.obs.I))
+} 
 
-            }else{ #for non-binomial situations sinib is used
 
-              0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V
-                         size=as.integer(N.risk),
-                         prob=p) +
-                ifelse(sum(Events.obs.I)==0,       #additional step as psinib can break if q<0
-                       0,
-                       0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)-1),
-                                  size=as.integer(N.risk),
-                                  prob=p))
-            },
-            N.risk.at.V.start=max(N.risk),
-            E=sum(Events.obs.I))
+
+
+if(p_method=='rand'){
+  #The only difference in the code compared to p_method=='mid' is how V.pval is defined
+  
+  #Specifically, we now use randomised p-values 
+  #As per Rubin-Delanchy 2019 (Meta-Analysis of Mid-p-Values), randomised Ps can be defined as
+  # R = X*P1 + (1-X)*P2      (aside: the direction of the Ps is flipped compared to Delanchy)
+  # where X is a uniform 0, 1 r.v
+  #rearranging we have: R= X(P1-P2)+P2
+  #This is the form used for obtaining randomised p-values when specifying V.pval in our code,
+  #and this form is used to avoid storing X values or other code complications 
+  
+  new.data.3<-new.data.2 %>%
+    mutate(expected_E=p*N.risk)%>%    #first add the expect number of events under the fitted model
+    group_by(V.lower) %>%
+    summarise(V.upper=unique(V.upper),
+              Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
+              Observed.E_over.V=sum(Events.obs.I),
+              
+              V.pval= { runif(1)*
+                  (PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)),
+                                            probs=(rep(p,N.risk)))  -
+                     PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
+                                              probs=(rep(p,N.risk)))) +
+                  PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
+                                           probs=(rep(p,N.risk)))  },
+              
+              N.risk.at.V.start=max(N.risk),
+              E=sum(Events.obs.I))
+  
+}
+
 
 #In the case that the largest time is an event and the specified V are such that
 #the last event is outside of V then you obtain an interval with an upper bound of
@@ -278,63 +319,16 @@ new.data.3<-new.data.3 %>% filter(V.upper!=Inf)
 
 
 
-#Error catching-------------------------------------------------------------------
-
-#There are a few rare situations (~1%) where sinib does not converge
-#and gives p-values outside of [0,1].
-#We will now implement a step to protect against this
-
-#First check new.data.3 for any p values outside of [0,1]
-
-p.checks<-new.data.3$V.mid.pval
-if(sum(!between(p.checks, left=0, right=1))>=1){ #if one or more p-values fall
-  #outside of 0 and 1 then
-  #find the v.lower values corresponding to these errors
-  error.intervals<-new.data.3$V.lower[!between(p.checks, left=0, right=1)]
-
-  #now we want to obtain the corrected values
-  #we do this be approximating the probabilities by using the round function
-  #this should hopefully provide values that have converged
-  ammended.p<-new.data.2 %>%
-    filter(V.lower %in% error.intervals) %>%   #select only data related to the error intervals
-    mutate(expected_E=p*N.risk)%>%
-    group_by(V.lower) %>%
-    summarise(V.upper=unique(V.upper),
-              Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
-              Observed.E_over.V=sum(Events.obs.I),
-              V.mid.pval= 0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)),    #p-value calculation for each V
-                                     size=as.integer(N.risk),
-                                     prob=round(p, digits = 3)) +##################
-              ifelse(sum(Events.obs.I)==0,       #additional step as psinib can break if q<0
-                     0,
-                     0.5*sinib::psinib(q=as.integer(sum(Events.obs.I)-1),
-                                size=as.integer(N.risk),
-                                prob=round(p, digits = 3))),############
-              N.risk.at.V.start=max(N.risk),
-              E=sum(Events.obs.I) )
-
-
-  #Now to replace the error p.val with this updated one
-
-  #values outside of range are given by new.data.3$V.mid.pval[which(!between(p.checks, left=0, right=1))]
-  #and are updated to ammendment
-  new.data.3$V.mid.pval[which(!between(p.checks, left=0, right=1))]<-ammended.p$V.mid.pval
-}
-#End of error catching
-
-
-
-
 
 #Bonferroni and individual test results-----------------------------------------
 #for the specified intervals
 
 information<-new.data.3 %>%
-  mutate(individual.test=ifelse(V.mid.pval<=0.025| V.mid.pval>=0.975,
+  mutate(individual.test=ifelse(V.pval<=0.025| V.pval>=0.975,
                                 'Reject', 'Accept')) %>%
-  mutate(bonferroni.test=ifelse(V.mid.pval<=         #I need to derive this 2-tailed result as it is not in my lecture notes
+  mutate(bonferroni.test=ifelse(V.pval<=         #I need to derive this 2-tailed result as it is not in my lecture notes
                                   0.025/nrow(new.data.3) |
-                                V.mid.pval>=
+                                V.pval>=
                                   1- 0.025/nrow(new.data.3),
                                 'Reject',
                                 'Accept')) %>%
