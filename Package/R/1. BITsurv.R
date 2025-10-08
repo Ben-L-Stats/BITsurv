@@ -133,9 +133,9 @@ upper.sub.int.vec<-function(time){sapply(time, upper.sub.int)}
 
 #Now to assign each datapoint to it corresponding subinterval
 new.data<-new.data %>%
-  filter(event!=2) %>%    #remove the specified intervals as these are no longer of interest
   mutate(I.lower=lower.sub.int.vec(time),     #assign datapoint to its subinterval
-         I.upper=upper.sub.int.vec(time))
+         I.upper=upper.sub.int.vec(time)) %>% 
+  filter( !(I.lower==0 & I.upper==0))     #remove the first superfluos row
 
 #So far this is just a df that includes the appropriate grouping of V and I,
 #which can all be checked by reviewing the df
@@ -154,9 +154,9 @@ new.data.1<-new.data %>%
   summarize(I.upper=unique(I.upper),
             V.lower=unique(V.lower),
             V.upper=unique(V.upper),
-            Events.obs.I=sum(event),
-            Censors.I=sum(event==0),
-            Pats.in.I=length(event))
+            Events.obs.I=sum(event==1),
+            Censors.I=sum(event==0)) %>% 
+  mutate(Pats.in.I=Events.obs.I+Censors.I)
 
 #Now we want to calculate the number at risk at the start of interval I
 new.data.1<-new.data.1%>%
