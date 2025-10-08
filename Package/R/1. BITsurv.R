@@ -11,7 +11,7 @@
 # library(survHE) #Load survHE. Loads flexsurv and survival automatically
 # library(survminer) #Required for ggsurvplot
 # library(dplyr)
-# library(sinib)
+# library(PoissonBinomial)
 
 
 
@@ -133,6 +133,7 @@ new.data.1<-new.data %>%
             V.lower=unique(V.lower),
             V.upper=unique(V.upper),
             Events.obs.I=sum(event),
+            Censors.I=sum(event==0),
             Pats.in.I=length(event))
 
 #Now we want to calculate the number at risk at the start of interval I
@@ -255,7 +256,7 @@ if (Distribution=='gengamma'){
 if(p_method=='mid'){
   
   new.data.3<-new.data.2 %>%
-    mutate(expected_E=p*N.risk)%>%    #first add the expect number of events under the fitted model
+    mutate(expected_E=p*(N.risk-Censors.I) )%>%    #first add the expect number of events under the fitted model
     group_by(V.lower) %>%
     summarise(V.upper=unique(V.upper),
               Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
@@ -263,10 +264,10 @@ if(p_method=='mid'){
               
               V.pval= {0.5*PoissonBinomial::ppbinom(
                 x=as.integer(sum(Events.obs.I)),
-                probs=(rep(p,N.risk)))+
+                probs=(rep(p, (N.risk-Censors.I) )))+
                   0.5*PoissonBinomial::ppbinom(
                     x=as.integer(sum(Events.obs.I)-1),
-                    probs=(rep(p,N.risk)))},
+                    probs=(rep(p,(N.risk-Censors.I) )))},
               
               N.risk.at.V.start=max(N.risk),
               E=sum(Events.obs.I))
@@ -287,7 +288,7 @@ if(p_method=='rand'){
   #and this form is used to avoid storing X values or other code complications 
   
   new.data.3<-new.data.2 %>%
-    mutate(expected_E=p*N.risk)%>%    #first add the expect number of events under the fitted model
+    mutate(expected_E=p*(N.risk-Censors.I) )%>%    #first add the expect number of events under the fitted model
     group_by(V.lower) %>%
     summarise(V.upper=unique(V.upper),
               Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
@@ -295,11 +296,11 @@ if(p_method=='rand'){
               
               V.pval= { runif(1)*
                   (PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)),
-                                            probs=(rep(p,N.risk)))  -
+                                            probs=(rep(p, (N.risk-Censors.I) )))  -
                      PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
-                                              probs=(rep(p,N.risk)))) +
+                                              probs=(rep(p, (N.risk-Censors.I) )))) +
                   PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
-                                           probs=(rep(p,N.risk)))  },
+                                           probs=(rep(p, (N.risk-Censors.I) )))  },
               
               N.risk.at.V.start=max(N.risk),
               E=sum(Events.obs.I))
@@ -326,7 +327,7 @@ new.data.3<-new.data.3 %>% filter(V.upper!=Inf)
 information<-new.data.3 %>%
   mutate(individual.test=ifelse(V.pval<=0.025| V.pval>=0.975,
                                 'Reject', 'Accept')) %>%
-  mutate(bonferroni.test=ifelse(V.pval<=         #I need to derive this 2-tailed result as it is not in my lecture notes
+  mutate(bonferroni.test=ifelse(V.pval<=         
                                   0.025/nrow(new.data.3) |
                                 V.pval>=
                                   1- 0.025/nrow(new.data.3),
