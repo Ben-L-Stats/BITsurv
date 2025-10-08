@@ -165,6 +165,23 @@ new.data.1<-new.data.1%>%
                     Pats.in.I[1:(nrow(new.data.1)-1)])) )
 
 
+# Filtering based on considering valid intervals--------------------------------
+
+#First, remove intervals that end at infinity
+#An interval ending at infinity is just a caveat of the upper.int.vec function,
+# telling us that there are events after the last censor time
+#Due to our approach described in the paper, such events are not of interest
+new.data.1<-new.data.1%>%
+  filter(!(V.upper==Inf))
+
+#Second, remove intervals for which N_{I_j}<1 as per equation 1
+#This is, remove the final interval if it is known that no events is possible
+#This prevents superfluous midpoint p-values of 0.5
+#Or in the case of randomised p-values, it prevents superfluous noise
+new.data.1<-new.data.1%>%
+  filter( !((N.risk-Censors.I)==0)  )
+
+
 
 # Calculating p_{I_j} values----------------------------------------------------
 
@@ -329,16 +346,6 @@ if(p_method=='rand'){
   
 }
 
-
-#In the case that the largest time is an event and the specified V are such that
-#the last event is outside of V then you obtain an interval with an upper bound of
-#resulting in a Prob=1 of observing an event within said interval, making the observed
-#event redundant. As such, such an interval is not of interest and is removed.
-
-#Similarly, if for whatever reason V is specified such that certain events are
-#outside of this. Then they will be assigned to this infinite interval and similarly
-#should be dropped. This is done here
-new.data.3<-new.data.3 %>% filter(V.upper!=Inf)
 
 
 
