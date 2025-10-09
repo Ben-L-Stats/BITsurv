@@ -19,7 +19,7 @@
 #'
 #' @examples
 #'  #In practice, this will just be
-#'  BIT.TS.PAVSI(p.vals=BIT.table$V.mid.pval)
+#'  BIT.TS.PAVSI(p.vals=BIT.table$V.pval)
 #'  #where BIT.table is the dataframe returned by the BIT.surv function.
 #'
 #'  #An example that can be run immediately
@@ -99,7 +99,7 @@ overall.p
 #'
 #' @examples
 #'  #In practice, this will just be
-#'  BIT.TS.TFT(p.vals=BIT.table$V.mid.pval)
+#'  BIT.TS.TFT(p.vals=BIT.table$V.pval)
 #'  #where BIT.table is the dataframe returned by the BIT.surv function.
 #'
 #'  #An example that can be run immediately

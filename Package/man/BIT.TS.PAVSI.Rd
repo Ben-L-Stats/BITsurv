@@ -4,10 +4,13 @@
 \alias{BIT.TS.PAVSI}
 \title{Protection Against Very Small Intervals (PAVSI)}
 \usage{
-BIT.TS.PAVSI(p.vals, print = TRUE)
+BIT.TS.PAVSI(p.vals, p_method = "mid", print = TRUE)
 }
 \arguments{
 \item{p.vals}{A vector of p-values}
+
+\item{p_method}{Default is 'mid'. The other option is 'rand', which is only
+recommended for special situations and simulations.}
 
 \item{print}{A simple command of whether to return the results of the test under H0.
 Default is to return the result (print=TRUE).}
@@ -20,7 +23,7 @@ This function produces an overall p-value using the PAVSI approach.
 }
 \examples{
  #In practice, this will just be
- BIT.TS.PAVSI(p.vals=BIT.table$V.mid.pval)
+ BIT.TS.PAVSI(p.vals=BIT.table$V.pval)
  #where BIT.table is the dataframe returned by the BIT.surv function.
 
  #An example that can be run immediately

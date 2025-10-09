@@ -4,7 +4,7 @@
 \alias{BIT.surv}
 \title{Fits a parametric survival curve to data and returns a binomial interval test (BIT) summary}
 \usage{
-BIT.surv(surv.data, Distribution, spec_int)
+BIT.surv(surv.data, Distribution, int_method, p_method = "mid")
 }
 \arguments{
 \item{surv.data}{A dataframe with 2 columns labelled time and event.}
@@ -13,8 +13,13 @@ BIT.surv(surv.data, Distribution, spec_int)
 'exp', 'weibull', 'gompertz', 'llogis','lnorm', 'gamma', and 'gengamma'. See
 flexsurv for further details on these distributions.}
 
-\item{spec_int}{The specified intervals: Provide a vector of values that represent your chosen intervals,
-where the sequential values in this vector form an interval.}
+\item{int_method}{The interval method. Options are 'ten' for 10 evenly-spaced
+intervals up to the last censor and 'censors'. To specify custom intervals
+please edit the BIT.surv function directly.}
+
+\item{p_method}{The method of obtaining p-values: Default is 'mid', which is recommended for
+practical applications. Options are either 'mid' for midpoint p-values,
+or 'rand' for randomised p-values.}
 }
 \value{
 A binomial interval test (BIT) summary in the form of a dataframe
@@ -23,20 +28,18 @@ A binomial interval test (BIT) summary in the form of a dataframe
 This function produces a dataframe.
 }
 \examples{
-#The dplyr package is used to make the simple.data
+#The dplyr package is required for BIT.surv to work
+library(dplyr)
+
 simple.data<-data.frame(T=rexp(100, rate=1/10),        #the underlying event process
                         cens=runif(100, 0, 20)) \%>\%    #the underlying censor process
      mutate(event=ifelse(T<=cens,0, 1),
             time=ifelse(T<=cens,T,cens)) \%>\%
      select(time,event)
 
-#Here we use the 10 evenly spaced interval approach:
-  censors<-simple.data \%>\% filter(event==0)
-  spec_int<-0.1*max(censors$time)*0:10
-
-#Run BITsurv
+#Here we use the 10 evenly-spaced interval approach for the exponential model
 BIT.surv(surv.data=simple.data,
         Distribution='exp',
-        spec_int=spec_int)
+        int_method='ten')
 
 }
