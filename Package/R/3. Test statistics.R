@@ -9,6 +9,8 @@
 #' This function produces an overall p-value using the PAVSI approach.
 #'
 #' @param p.vals A vector of p-values
+#' @param p_method Default is 'mid'. The other option is 'rand', which is only 
+#' recommended for special situations and simulations.
 #' @param print A simple command of whether to return the results of the test under H0.
 #' Default is to return the result (print=TRUE).
 #'
@@ -23,18 +25,34 @@
 #'  #An example that can be run immediately
 #'  BIT.TS.PAVSI(p.vals=0.1*c(1:9))
 #'
-BIT.TS.PAVSI<-function(p.vals, print=TRUE){
+BIT.TS.PAVSI<-function(p.vals, 
+                       p_method='mid',
+                       print=TRUE){
 
 rejects<-sum(p.vals<=0.025)+   #num of intervals that fail the individual test
           sum(p.vals>=0.975)
 
 size=length(p.vals)            #number of intervals
 
-#calculate the midpoint p-value
+#calculate the midpoint p-value---------------------------------------
+if(p_method=='mid'){
 overall.p<-0.5*
     (pbinom(q=rejects-1, size=size, prob=0.05,lower.tail=FALSE)+   #Prob(T>=rejects)=Prob(T>rejects-1)
      pbinom(q=rejects, size=size, prob=0.05, lower.tail=FALSE))    #Prob(T>rejects)
 #Note that 0.05 is probability of failing an individual test under the null
+}
+
+
+#or calculate randomised p value---------------------------------------
+if(p_method=='rand'){
+  overall.p<-runif(1)*
+    (pbinom(q=rejects, size=size, prob=0.05,lower.tail=FALSE)-   
+       pbinom(q=rejects-1, size=size, prob=0.05, lower.tail=FALSE))+
+    pbinom(q=rejects-1, size=size, prob=0.05, lower.tail=FALSE)
+  #Note that 0.05 is probability of failing an individual test under the null
+}
+
+#Print result-------------------------------------------------------------
 
 if(print==TRUE){
 if(overall.p<0.05)

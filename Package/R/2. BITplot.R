@@ -146,7 +146,8 @@ BIT.plot<-base.plot$plot+
   g1<-ggplot2::ggplotGrob(plot$plot+
                    ggplot2::geom_line(data=data.frame(x=x,y=y),
                                       ggplot2::aes(x,y))+
-                   ggplot2::geom_vline(xintercept=unique(censors$time),
+                   ggplot2::geom_vline(xintercept=unique(((surv.data %>% 
+                                                           filter(event==0))$time)),
                               colour='grey', linetype='dashed'))
 
   #BIT plot
