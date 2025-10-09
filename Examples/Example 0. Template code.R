@@ -54,7 +54,7 @@ BIT.plot(surv.data=simple.data,
 
 #Run test statistics------------------------------------------------------------
 #Obtain an approximate overall p-values
-#See simulation results in the paper to understand the limitations of these
+#See simulation results in the paper to understand the limitations 
 
 #Uses the number of individual rejections to determine the overall p-value
 #?BIT.TS.PAVSI

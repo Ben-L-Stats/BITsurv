@@ -6,6 +6,11 @@
 #  Date:  
 ###################################################################################
 
+# Lines 1-100: Example code for performing binomial interval tests on the 7 
+# standard parametric survival curves.
+# Lines 110+: Additional code for AIC/BIC as well as producing plot and table
+# included in the paper for Example 2.
+
 #libraries----------------------------------------------------------------------
 library(BITsurv)
 library(dplyr)
@@ -34,18 +39,14 @@ Fit.curve.plot(surv.data=surv.data,
 
 #Decide which approach to use:
 #here we go with the 10 evenly-spaced interval approach
-#replace lines 44 and 45 with uncommented lines 40 and 41 to use the censor interval approach 
+int_method<-'ten'
 
-#The censor interval approach
-# censors<-surv.data %>% filter(event==0)
-# spec_int<-censors$time
-
-#The 10 evenly-spaced intervals approach
-censors<-surv.data %>% filter(event==0)
-spec_int<-0.1*max(censors$time)*0:10
+#To get the censor interval results run
+#int_method<-'censors'
 
 
-#Pick a survival model that you would like to check------------------------------
+
+#Pick the survival models that you would like to check------------------------------
 
 #Options are: exp, weibull, gompertz, llogis, lnorm, gamma, gengamma   
 #We are interested in all of these models, so we will loop through them
@@ -53,7 +54,7 @@ spec_int<-0.1*max(censors$time)*0:10
 Dist.loop=c("exp", "weibull", "gompertz", "llogis", "lnorm", "gamma", "gengamma")
 
 
-#Run analyses using original censor intervals approach--------------------------
+#Run analyses ---------------------------------------------------------------------
 
 #set up empty dataframe to save results
 TS.results<-data.frame(fitted.dist=rep(NA,length(Dist.loop)),
@@ -66,12 +67,14 @@ TS.results<-data.frame(fitted.dist=rep(NA,length(Dist.loop)),
 for (i in 1:length(Dist.loop)){ #loop through distributions
 
 #run the BIT
-BIT.table<-BIT.surv(surv.data, Distribution=Dist.loop[i], spec_int)
+BIT.table<-BIT.surv(surv.data, 
+                    Distribution=Dist.loop[i], 
+                    int_method=int_method)
 
 #Save the TS results
 TS.results$fitted.dist[i]<- Dist.loop[i]
-TS.results$PAVSI[i]<- BIT.TS.PAVSI(BIT.table$V.mid.pval, print=FALSE) 
-TS.results$TFT[i]<- BIT.TS.TFT(BIT.table$V.mid.pval, print=FALSE)
+TS.results$PAVSI[i]<- BIT.TS.PAVSI(BIT.table$V.pval, print=FALSE) 
+TS.results$TFT[i]<- BIT.TS.TFT(BIT.table$V.pval, print=FALSE)
 
 #Save the BIT results
 if (i==1){ #save first result
@@ -92,6 +95,28 @@ Results.Ints<-BIT.tab.final %>%
             Ints.Individual=sum(individual.test=='Reject')) %>% 
   left_join(TS.results,
             by='fitted.dist')
+
+Results.Ints
+#This covers the key results!
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################
+################################################################################
+## Additional outputs of interest
+## Including plot and table included in paper
+################################################################################
+################################################################################
 
 
 
@@ -119,39 +144,34 @@ for (i in 1:length(Dist.loop)){ #loop through distributions
 Final.table<-Results.Ints %>% 
                left_join(AIC.table, by='fitted.dist')
 
+Final.table
 
 
 
 
 
 
-
-
-#Additional individual plot checks as required---------------------------------------------
+#Plot of generalised gamma distribution---------------------------------------------
 
 #lnorm perform well on AIC and BIC but has a Bonferroni rejection for censor intervals
 
 spec.dist<-'gengamma'
 
 BIT.spec.table<-BIT.surv(surv.data, 
-                   Distribution=spec.dist, 
-                   spec_int=0.1*max(censors$time)*0:10)
+                         Distribution=spec.dist, 
+                         int_method=int_method)
 
-# BIT.spec.table<-BITsurv(surv.data, 
-#                         Distribution=spec.dist, 
-#                         spec_int=censors$time)
 
 BIT.plot(surv.data, 
          BIT.table=BIT.spec.table, 
          break.time=5)
 
-#-------------------------------------------------------------------------------
+
+#Appendix table for log normal distribution-------------------------------------
 spec.dist<-'lnorm'
 
 BIT.spec.table<-BIT.surv(surv.data, 
                         Distribution=spec.dist, 
-                        spec_int=0.1*max(censors$time)*0:10)
+                        int_method=int_method)
 
-BIT.plot(surv.data, 
-         BIT.table=BIT.spec.table, 
-         break.time=5)
+BIT.spec.table

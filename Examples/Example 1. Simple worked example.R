@@ -24,12 +24,6 @@ surv.data<-melanoma.data %>%
 
 #Perform the binomial interval test (BIT)--------------------------------------------
 
-#Specify intervals of interest--------------------------------------------------
-
-#We are using the original approach where the censors define the intervals
-censors<-surv.data %>% filter(event==0)
-spec_int<-censors$time
-
 #Pick a survival model that you would like to check------------------------------
 
 #Options are: exp, weibull, gompertz, llogis, lnorm, gamma, gengamma   
@@ -38,7 +32,10 @@ Distribution="exp"
 
 #Source and run BIT function--------------------------------------------------
 
-BIT.table<-BIT.surv(surv.data, Distribution, spec_int)
+#For example 1 we are interested in the censor approach
+BIT.table<-BIT.surv(surv.data=surv.data,
+                    Distribution=Distribution,
+                    int_method='censors')
 
 
 #Source and run plot function---------------------------------------------------
@@ -47,6 +44,6 @@ BIT.plot(surv.data, BIT.table)
 
 #The test statistics------------------------------------------------------------
 
-BIT.TS.PAVSI(BIT.table$V.mid.pval)       #protection against very small intervals (PAVSI)
+BIT.TS.TFT(BIT.table$V.pval )       #transformed fisher test (TFT)
 
-BIT.TS.TFT(BIT.table$V.mid.pval )       #transformed fisher test (TFT)
+BIT.TS.PAVSI(BIT.table$V.pval)       #protection against very small intervals (PAVSI)
