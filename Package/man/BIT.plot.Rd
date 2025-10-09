@@ -24,6 +24,8 @@ This function produces a plot
 \examples{
 
 #The dplyr package is used to make the simple.data
+library(dplyr)
+
 simple.data<-data.frame(T=rexp(100, rate=1/10),        #the underlying event process
                         cens=runif(100, 0, 20)) \%>\%    #the underlying censor process
      mutate(event=ifelse(T<=cens,0, 1),
@@ -31,6 +33,9 @@ simple.data<-data.frame(T=rexp(100, rate=1/10),        #the underlying event pro
      select(time,event)
 
 #Obtain a BIT.table dataframe using the BIT.surv(...) function
+BIT.table<-BIT.surv(surv.data=simple.data,
+                   Distribution='exp',
+                   int_method='ten')
 
 #Produce the plot
 BIT.plot(surv.data=simple.data,

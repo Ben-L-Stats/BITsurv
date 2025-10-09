@@ -28,7 +28,9 @@
 #' @export
 #'
 #' @examples
-#' #The dplyr package is used to make the simple.data
+#' #The dplyr package is required
+#' library(dplyr)
+#' 
 #' simple.data<-data.frame(T=rexp(100, rate=1/10),        #the underlying event process
 #'                         cens=runif(100, 0, 20)) %>%    #the underlying censor process
 #'      mutate(event=ifelse(T<=cens,0, 1),

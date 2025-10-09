@@ -19,10 +19,13 @@
 #'
 #' @examples
 #'  #In practice, this will just be
-#'  BIT.TS.PAVSI(p.vals=BIT.table$V.pval)
+#'  #BIT.TS.PAVSI(p.vals=BIT.table$V.pval)
 #'  #where BIT.table is the dataframe returned by the BIT.surv function.
 #'
-#'  #An example that can be run immediately
+#' #The dplyr package is required 
+#' library(dplyr)
+#' 
+#'  #An example that can be run immediately is
 #'  BIT.TS.PAVSI(p.vals=0.1*c(1:9))
 #'
 BIT.TS.PAVSI<-function(p.vals, 
@@ -99,10 +102,13 @@ overall.p
 #'
 #' @examples
 #'  #In practice, this will just be
-#'  BIT.TS.TFT(p.vals=BIT.table$V.pval)
+#'  #BIT.TS.TFT(p.vals=BIT.table$V.pval)
 #'  #where BIT.table is the dataframe returned by the BIT.surv function.
 #'
-#'  #An example that can be run immediately
+#' #The dplyr package is required 
+#' library(dplyr)
+#' 
+#'  #An example that can be run immediately is
 #'  BIT.TS.TFT(p.vals=0.1*c(1:9))
 #'
 BIT.TS.TFT<-function(p.vals, print=TRUE){

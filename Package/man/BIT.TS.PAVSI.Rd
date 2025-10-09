@@ -23,10 +23,13 @@ This function produces an overall p-value using the PAVSI approach.
 }
 \examples{
  #In practice, this will just be
- BIT.TS.PAVSI(p.vals=BIT.table$V.pval)
+ #BIT.TS.PAVSI(p.vals=BIT.table$V.pval)
  #where BIT.table is the dataframe returned by the BIT.surv function.
 
- #An example that can be run immediately
+#The dplyr package is required 
+library(dplyr)
+
+ #An example that can be run immediately is
  BIT.TS.PAVSI(p.vals=0.1*c(1:9))
 
 }
