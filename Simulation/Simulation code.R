@@ -3,7 +3,7 @@
 #           Then apply the methods to this to verify type 1 error rates etc
 #
 #  Programmer: 
-#  Date:  09/10/2025
+#  Date:  15/06/2026
 ###################################################################################
 
 #Code structure:
@@ -38,7 +38,7 @@
 
 #You must specify your own file output directory
 #Results are saved in github as excel files if you don't want to run the code
-output.path<-"C:/.../BITsurv/Simulation/Results"
+output.path<-"C:/Main/GitHub/BITsurv/Simulation/Results"
 
 #This seed gives the results presented in the paper
 #Use a different seed to see impact on the results
@@ -265,6 +265,7 @@ if( sum(surv.data$event==0)==0  ){  #if no censors
   #-------------------------------------------------------------------------------
   #The following is just the BIT.surv function for exp----------------------------
   #where a small edit has been made to use the true event generating process------
+  #Additionally N.risk-Cens has been replaced by N.risk
   #when calculating p. This edit is highlighted in the code------------------------
   #-------------------------------------------------------------------------------
   
@@ -346,12 +347,6 @@ if( sum(surv.data$event==0)==0  ){  #if no censors
   new.data.1<-new.data.1%>%
     filter(!(V.upper==Inf))
   
-  #Second, remove intervals for which N_{I_j}<1 as per equation 1
-  #This is, remove the final interval if it is known that no events is possible
-  #This prevents superfluous midpoint p-values of 0.5
-  #Or in the case of randomised p-values, it prevents superfluous noise
-  new.data.1<-new.data.1%>%
-    filter( !((N.risk-Censors.I)==0)  )
   
   
   
@@ -385,7 +380,7 @@ if( sum(surv.data$event==0)==0  ){  #if no censors
   if(p_method=='mid'){
     
     new.data.3<-new.data.2 %>%
-      mutate(expected_E=p*(N.risk-Censors.I) )%>%    #first add the expect number of events under the fitted model
+      mutate(expected_E=p*(N.risk) )%>%    #first add the expect number of events under the fitted model
       group_by(V.lower) %>%
       summarise(V.upper=unique(V.upper),
                 Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
@@ -393,10 +388,10 @@ if( sum(surv.data$event==0)==0  ){  #if no censors
                 
                 V.pval= {0.5*PoissonBinomial::ppbinom(
                   x=as.integer(sum(Events.obs.I)),
-                  probs=(rep(p, (N.risk-Censors.I) )))+
+                  probs=(rep(p, (N.risk) )))+
                     0.5*PoissonBinomial::ppbinom(
                       x=as.integer(sum(Events.obs.I)-1),
-                      probs=(rep(p,(N.risk-Censors.I) )))},
+                      probs=(rep(p,(N.risk) )))},
                 
                 N.risk.at.V.start=max(N.risk),
                 E=sum(Events.obs.I))
@@ -417,7 +412,7 @@ if( sum(surv.data$event==0)==0  ){  #if no censors
     #and this form is used to avoid storing X values or other code complications 
     
     new.data.3<-new.data.2 %>%
-      mutate(expected_E=p*(N.risk-Censors.I) )%>%    #first add the expect number of events under the fitted model
+      mutate(expected_E=p*(N.risk) )%>%    #first add the expect number of events under the fitted model
       group_by(V.lower) %>%
       summarise(V.upper=unique(V.upper),
                 Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
@@ -425,11 +420,11 @@ if( sum(surv.data$event==0)==0  ){  #if no censors
                 
                 V.pval= { runif(1)*
                     (PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)),
-                                              probs=(rep(p, (N.risk-Censors.I) )))  -
+                                              probs=(rep(p, (N.risk) )))  -
                        PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
-                                                probs=(rep(p, (N.risk-Censors.I) )))) +
+                                                probs=(rep(p, (N.risk) )))) +
                     PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
-                                             probs=(rep(p, (N.risk-Censors.I) )))  },
+                                             probs=(rep(p, (N.risk) )))  },
                 
                 N.risk.at.V.start=max(N.risk),
                 E=sum(Events.obs.I))
