@@ -159,8 +159,9 @@ BIT.plot<-base.plot$plot+
   #BIT plot
   g2 <- ggplot2::ggplotGrob(BIT.plot)
 
-  #At risk table
-  g3<-ggplot2::ggplotGrob(plot$table)
+  suppressMessages(                       #Message suppression from survminer regarding plot colours
+    g3<-ggplot2::ggplotGrob(plot$table))  #That is, survminer wants the risk table numbers to also be purple, but I want them to stay black with a purple curve. 
+                                          #This suppression avoid superfluous code.
 
   min_ncol <- min(ncol(g1), ncol(g2), ncol(g3))
 
@@ -174,7 +175,7 @@ BIT.plot<-base.plot$plot+
 
 
 
-  print(grid::grid.draw(g))
+  grid::grid.draw(g)
 
 
   #End of function----------------------------------------------------------------
