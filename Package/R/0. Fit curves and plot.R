@@ -94,6 +94,7 @@ KM.est <- survival::survfit(survival::Surv(time,event) ~ 1,
 plot<-survminer::ggsurvplot(KM.est, data = surv.data,
                  title= paste0('Fitted Survival curve - ', Distribution),
                  risk.table = TRUE,
+                 risk.table.col = "strata",   #makes risk table purple but prevents survminer messages
                  palette = c("purple"),
                  break.time.by = break.time)
 
@@ -118,7 +119,7 @@ grid::grid.newpage()
 
 
 
-print(grid::grid.draw(g))
+grid::grid.draw(g)
 
 
 #End of function----------------------------------------------------------------
