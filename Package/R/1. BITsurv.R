@@ -1,5 +1,3 @@
-#Fit exponential model to single arm data and produce plot of this
-
 #Input is:
 # surv.data
 # Distribution
@@ -174,13 +172,6 @@ new.data.1<-new.data.1%>%
 new.data.1<-new.data.1%>%
   filter(!(V.upper==Inf))
 
-#Second, remove intervals for which N_{I_j}<1 as per equation 1
-#This is, remove the final interval if it is known that no events is possible
-#This prevents superfluous midpoint p-values of 0.5
-#Or in the case of randomised p-values, it prevents superfluous noise
-new.data.1<-new.data.1%>%
-  filter( !((N.risk-Censors.I)==0)  )
-
 
 
 # Calculating p_{I_j} values----------------------------------------------------
@@ -295,7 +286,7 @@ if (Distribution=='gengamma'){
 if(p_method=='mid'){
   
   new.data.3<-new.data.2 %>%
-    mutate(expected_E=p*(N.risk-Censors.I) )%>%    #first add the expect number of events under the fitted model
+    mutate(expected_E=p*(N.risk) )%>%    #first add the expected number of events under the fitted model
     group_by(V.lower) %>%
     summarise(V.upper=unique(V.upper),
               Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
@@ -303,10 +294,10 @@ if(p_method=='mid'){
               
               V.pval= {0.5*PoissonBinomial::ppbinom(
                 x=as.integer(sum(Events.obs.I)),
-                probs=(rep(p, (N.risk-Censors.I) )))+
+                probs=(rep(p, (N.risk) )))+
                   0.5*PoissonBinomial::ppbinom(
                     x=as.integer(sum(Events.obs.I)-1),
-                    probs=(rep(p,(N.risk-Censors.I) )))},
+                    probs=(rep(p,(N.risk) )))},
               
               N.risk.at.V.start=max(N.risk),
               E=sum(Events.obs.I))
@@ -327,7 +318,7 @@ if(p_method=='rand'){
   #and this form is used to avoid storing X values or other code complications 
   
   new.data.3<-new.data.2 %>%
-    mutate(expected_E=p*(N.risk-Censors.I) )%>%    #first add the expect number of events under the fitted model
+    mutate(expected_E=p*(N.risk) )%>%    #first add the expect number of events under the fitted model
     group_by(V.lower) %>%
     summarise(V.upper=unique(V.upper),
               Expect.E_over.V=sum(expected_E),             #summary statistics for each interval V
@@ -335,11 +326,11 @@ if(p_method=='rand'){
               
               V.pval= { runif(1)*
                   (PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)),
-                                            probs=(rep(p, (N.risk-Censors.I) )))  -
+                                            probs=(rep(p, (N.risk) )))  -
                      PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
-                                              probs=(rep(p, (N.risk-Censors.I) )))) +
+                                              probs=(rep(p, (N.risk) )))) +
                   PoissonBinomial::ppbinom(x=as.integer(sum(Events.obs.I)-1),
-                                           probs=(rep(p, (N.risk-Censors.I) )))  },
+                                           probs=(rep(p, (N.risk) )))  },
               
               N.risk.at.V.start=max(N.risk),
               E=sum(Events.obs.I))
