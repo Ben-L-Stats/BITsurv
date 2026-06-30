@@ -80,11 +80,9 @@ plot<-ggsurvplot(KM.est, data = surv.data,
 plot$plot+
    geom_line(data=data.frame(x=x,y=y.MLE), 
                            aes(x,y.MLE),
-                           size=1,
                            color='black')+
   geom_line(data=data.frame(x=x,y=y.true), 
                            aes(x,y.true),
-                           size=1,
                            color='red')
 
 #The red curve shows the true event generating process
