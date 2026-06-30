@@ -140,11 +140,14 @@ BIT.plot<-base.plot$plot+
                            xmin = V.lower, xmax = V.upper,
                            fill = rejection.type),
               ymin = 0, ymax = 1, data = plot.data)  +
-   ggplot2::scale_fill_manual(values = ggplot2::alpha(c('Bonferroni'="red",
-                                                        'Individual'="darkgrey"), .5))+
    ggplot2::geom_vline(xintercept=unique(c(BIT.table$V.upper,BIT.table$V.lower)),
                colour='black', linetype='dashed')
 
+if(nrow(plot.data)>0){      #adds specified colour, assuming a rejection of some type occurs
+  BIT.plot<-BIT.plot+
+    ggplot2::scale_fill_manual(values = ggplot2::alpha(c('Bonferroni'="red",
+                                                         'Individual'="darkgrey"), .5))
+}
 
   #stitch it all together-----------------------------------
 
